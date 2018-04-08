@@ -1,8 +1,8 @@
 /*
 	PROYECTO 1 FUNDAMENTOS DE INFRAESTRUCTURA TECNOL�GICA
-	Nombre Estudiante 1 - Codigo Estudiante 1
-	Nombre Estudiante 2 - Codigo Estudiante 2
-	Nombre Estudiante 3 - Codigo Estudiante 3
+	Geovanny Andrés González - 201719528 - ga.gonzalezr
+	Juan Felipe Parra - 201714259
+	Vilma Tirado Gómez 
 */
 
 #include "stdlib.h"
@@ -80,9 +80,19 @@ int main(int argc, char* argv[])
 /*
 	Procedimiento que escribe s empezando en el bit p de V
 */
+
 void escribir(unsigned char *V, unsigned char *s, int p)
 {
 	//TODO: DESARROLLAR COMPLETAMENTE ESTE PROCEDIMIENTO
+	
+	unsigned short posicionesByte = 0; // Numero entero para conocer cuantos bytes enteros se deben reescribir, cuantas posiciones completas del vector de char.
+	unsigned short posicionesSiguientes = 0; // En caso de que el modulo 8 (1 byte) de p no sea cero. Son las posiciones siguientes de la siguiente posicion que se deben
+											 // reescribir.
+		
+	posicionesByte = p / 8; // Posiciones del char a escribir.
+	posicionesSiguientes = p % 8; //Bits del siguiente indice que se deben de escribir.
+
+	//Luego de tener las posiciones en las cuales se debe escribir se procede a realizar la escritura.
 }
 
 /*
