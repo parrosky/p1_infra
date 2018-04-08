@@ -1,8 +1,8 @@
 /*
 	PROYECTO 1 FUNDAMENTOS DE INFRAESTRUCTURA TECNOL�GICA
 	Geovanny Andrés González - 201719528 - ga.gonzalezr
-	Juan Felipe Parra - 201714259
-	Vilma Tirado Gómez 
+	Juan Felipe Parra - 201714259 - jf.parrac
+	Vilma Tirado Gómez - 201632317 - vm.tirado
 */
 
 #include "stdlib.h"
@@ -88,11 +88,18 @@ void escribir(unsigned char *V, unsigned char *s, int p)
 	unsigned short posicionesByte = 0; // Numero entero para conocer cuantos bytes enteros se deben reescribir, cuantas posiciones completas del vector de char.
 	unsigned short posicionesSiguientes = 0; // En caso de que el modulo 8 (1 byte) de p no sea cero. Son las posiciones siguientes de la siguiente posicion que se deben
 											 // reescribir.
-		
-	posicionesByte = p / 8; // Posiciones del char a escribir.
-	posicionesSiguientes = p % 8; //Bits del siguiente indice que se deben de escribir.
+
+	posicionesByte = p / 8; // Posiciones del vector char a escribir.
+	posicionesSiguientes = p % 8; //Bits desde el cual se comienza a escribir en el vector.
 
 	//Luego de tener las posiciones en las cuales se debe escribir se procede a realizar la escritura.
+	char iArreglo = V[posicionesByte]; //Toma el valor del vector sobre el cual se debe realizar la escritura.
+	char iSiguiente = -1; // Valor para guardar la siguiente posicion.
+
+	if (posicionesSiguientes > 0) // Si ademas se debe realizar procesos de escritura la siguiente posicion.
+	{
+		iSiguiente = V[posicionesByte + 1]; //Asigna el siguiente char.
+	}
 }
 
 /*
