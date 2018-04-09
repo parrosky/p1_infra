@@ -85,21 +85,37 @@ void escribir(unsigned char *V, unsigned char *s, int p)
 {
 	//TODO: DESARROLLAR COMPLETAMENTE ESTE PROCEDIMIENTO
 	
-	unsigned short posicionesByte = 0; // Numero entero para conocer cuantos bytes enteros se deben reescribir, cuantas posiciones completas del vector de char.
-	unsigned short posicionesSiguientes = 0; // En caso de que el modulo 8 (1 byte) de p no sea cero. Son las posiciones siguientes de la siguiente posicion que se deben
+	unsigned short accesoByte = 0; // Numero entero para conocer cuantos bytes enteros se deben reescribir, cuantas posiciones completas del vector de char.
+	unsigned short accesoSiguientes = 0; // En caso de que el modulo 8 (1 byte) de p no sea cero. Son las posiciones siguientes de la siguiente posicion que se deben
 											 // reescribir.
 
-	posicionesByte = p / 8; // Posiciones del vector char a escribir.
-	posicionesSiguientes = p % 8; //Bits desde el cual se comienza a escribir en el vector.
+	accesoByte = p / 8; // Posiciones del vector char a escribir.
+	accesoSiguientes = p % 8; //Bits desde el cual se comienza a escribir en el vector.
 
 	//Luego de tener las posiciones en las cuales se debe escribir se procede a realizar la escritura.
-	char iArreglo = V[posicionesByte]; //Toma el valor del vector sobre el cual se debe realizar la escritura.
-	char iSiguiente = -1; // Valor para guardar la siguiente posicion.
+	unsigned char iArreglo = *(V + accesoByte); //Toma el valor del vector sobre el cual se debe realizar la escritura.
+	unsigned char iSiguiente = *(V + accesoByte + 1); // Acceso a posicion + 1 del vector char.
+	unsigned char iSiguiente2 = *(V + accesoByte + 2); // Acceso a posicion + 2 del vector char.
+	unsigned char tamanioCadena = sizeof(s) / 4; // Obtener el tamaño de la cadena ingresada.
+	unsigned char tamanioActual = tamanioCadena; //Longitud procesada de la cadena.
 
-	if (posicionesSiguientes > 0) // Si ademas se debe realizar procesos de escritura la siguiente posicion.
+	while (tamanioActual > 1) // Hay mas de un caracter para procesar.
 	{
-		iSiguiente = V[posicionesByte + 1]; //Asigna el siguiente char.
-	}
+						
+		if (tamanioCadena > 8) // Si hay mas de 8 se necesitan 2 posiciones. Idea! Correr a izquierda y derecha para limpiar espacios necesarios. Con Mascara asignarlos con OR. Quitar los pedazos asignados
+		//Hasta que se termine de consumir la cadena. 
+		{
+			if (accesoSiguiente != 0)
+			{
+				// Corre los espacios y limpia los sectores necesarios.
+				iArreglo = iArreglo >> (8 - accesoSiguiente);
+				iArreglo = iArreglo << (8 - accesoSiguiente);
+				
+				//Genera la mascara.
+				unsigned char mascara = 0; // Mascara a nivel de bits de 0b00000000.				
+			}		
+		}	
+	}	
 }
 
 /*
