@@ -11,6 +11,13 @@
 void escribir(unsigned char *V, unsigned char *s, int p);
 void leer(unsigned char *V, unsigned char *s, int p, int l);
 
+/**
+	=== Metodos auxiliares para realizar algunas partes de los procedimientos ===.
+*/
+
+unsigned char generarMascara(unsigned char posInicial, unsigned char posFinal, unsigned char * valores);
+void caracteresAValor(unsigned char * caracteres);
+
 int main(int argc, char* argv[])
 {
 	// Variables
@@ -91,28 +98,52 @@ void escribir(unsigned char *V, unsigned char *s, int p)
 
 	accesoByte = p / 8; // Posiciones del vector char a escribir.
 	accesoSiguientes = p % 8; //Bits desde el cual se comienza a escribir en el vector.
+	caracteresAValor(s); // Pasa la cadena de caracteres para que sea transformada de valores ASCII a 1 y 0 numerico.
 
 	//Luego de tener las posiciones en las cuales se debe escribir se procede a realizar la escritura.
 	unsigned char iArreglo = *(V + accesoByte); //Toma el valor del vector sobre el cual se debe realizar la escritura.
 	unsigned char iSiguiente = *(V + accesoByte + 1); // Acceso a posicion + 1 del vector char.
 	unsigned char iSiguiente2 = *(V + accesoByte + 2); // Acceso a posicion + 2 del vector char.
-	unsigned char tamanioCadena = sizeof(s) / 4; // Obtener el tamaño de la cadena ingresada.
-	unsigned char tamanioActual = tamanioCadena; //Longitud procesada de la cadena.
+	unsigned char indiceProcesado = 0; //Indices procesados de la cadena de caracteres!
+	unsigned char tamanioCadena = sizeof(s) / 4; // Obtener el tamaño de la cadena ingresada.	
 
-	while (tamanioActual > 1) // Hay mas de un caracter para procesar.
+	while (tamanioActual > 1) // Hay mas de un caracter para procesar. OJO: De momento queda en CICLO INFINITO ! No reduzco el tamaño ! Att: Geovanny.
 	{
-						
+
 		if (tamanioCadena > 8) // Si hay mas de 8 se necesitan 2 posiciones. Idea! Correr a izquierda y derecha para limpiar espacios necesarios. Con Mascara asignarlos con OR. Quitar los pedazos asignados
 		//Hasta que se termine de consumir la cadena. 
 		{
-			if (accesoSiguiente != 0)
-			{
 				// Corre los espacios y limpia los sectores necesarios.
-				iArreglo = iArreglo >> (8 - accesoSiguiente);
+				iArreglo = iArreglo >> (8 - accesoSiguiente); // Estaba en 8 - accesoS.
 				iArreglo = iArreglo << (8 - accesoSiguiente);
-				
-				//Genera la mascara.
-				unsigned char mascara = 0; // Mascara a nivel de bits de 0b00000000.				
+
+				//Genera la mascara.				
+				unsigned char mascara = generarMascara(indiceProcesado, 8 - accesoSiguiente, s); //Genera la mascara con los valores 1 y 0 numericos.
+				iArreglo = iArreglo | mascara; //Agrega los nuevlos valores a la mascara.				
+				indiceProcesado = 8 - accesoSiguientes; // Se avanza al siguiente indice de la cadena que falte por leer.
+				//Escritura segundo char.
+				iSiguiente = generarMascara(indiceProcesado, indiceProcesado + 8, s); //Como se debe reemplazar completamente el valor se pone
+																			//a la mascara a que genere los valores completos de la cadena.
+				indiceProcesado += 8; // Se avanza al siguiente indice de la cadena que falte por leer.		
+				//Escritura 3er char.
+				iSiguiente2 = iSiguiente2 << (16 - indiceProcesado); //Elimina del inicio las posiciones necesarias.
+				iSiguiente2 = iSiguiente2 >> (16 - indiceProcesado);
+
+				mascara = generarMascara(indiceProcesado, 16, s); //Obtiene la mascara con los valores faltantes.
+				mascara = mascara << (16 - indiceProcesado); //Corre los valores para que queden al inicio.
+
+				// Escribe.
+				iSiguiente2 = iSiguiente2 | mascara; 
+
+				// Se actualizan los valores!
+				*(V + accesoByte) = iArreglo;
+				*(V + accesoByte + 1) = iSiguiente;
+				*(V + accesoByte + 2) = iSiguiente2;
+			
+				//Termina proceso :)
+				return;
+			}	
+
 			}		
 		}	
 	}	
@@ -125,4 +156,41 @@ void escribir(unsigned char *V, unsigned char *s, int p)
 void leer(unsigned char *V, unsigned char *s, int p, int l)
 {
 	//TODO: DESARROLLAR COMPLETAMENTE ESTE PROCEDIMIENTO
+}
+
+/*
+	Permite generar una mascara con los bits deseados a "pegar" en los char.
+	@param valores: Son los valores 1 o 0 que se van a agregar a la mascara.
+	@return Una mascara con los valores deseados incluidos.
+*/
+
+unsigned char generarMascara(unsigned char posInicial, unsigned char posFinal, unsigned char * valores)
+{
+	unsigned char mascara = 0; // Valor inicial de la mascara en binario. 00000000.
+	unsigned char indice = posInicial; // Indice para iterar sobre el arreglo de caracteres.
+	while (indice < posFinal) 
+	{
+		mascara = mascara << 1; // Desplaza a la izquiera esperando el siguiente bit.
+		mascara = mascara | valores[indice]; //Pega el bit 1 o 0 a la mascara.		
+		indice++;
+	}
+
+	return mascara; //Retorna la mascara con los bits añadidos.
+}
+
+/*
+	Permite generar una mascara con los bits deseados a "pegar" en los char.
+	@param caracteres: Son los caracteres recibidos en la cadena de entrada ingresada por el usuario.
+	@return Un apuntador a la primera posicion del arreglo con los caracteres traducidos de ASCII a valores 1 o 0.
+*/
+
+void caracteresAValor(unsigned char * caracteres) // Verificar si el paso por parametro se puede en C !
+{
+	unsigned char i = 0; //Variable para el indice.
+	while (caracteres[i])
+	{
+		unsigned char valorPosicion = *(caracteres + i); //Reemplaza por valores numericos.
+		caracteres[i] = (valorPosicion == '1') ? 1 : 0;
+		i++;
+	}
 }
