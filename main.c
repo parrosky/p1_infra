@@ -17,6 +17,7 @@ void leer(unsigned char *V, unsigned char *s, int p, int l);
 
 unsigned char generarMascara(unsigned char posInicial, unsigned char posFinal, unsigned char * valores);
 void caracteresAValor(unsigned char * caracteres);
+unsigned char longitud (unsigned char * caracteres);
 
 int main(int argc, char* argv[])
 {
@@ -98,56 +99,62 @@ void escribir(unsigned char *V, unsigned char *s, int p)
 
 	accesoByte = p / 8; // Posiciones del vector char a escribir.
 	accesoSiguientes = p % 8; //Bits desde el cual se comienza a escribir en el vector.
+	unsigned char tamanioCadena = longitud(s); // Obtener el tamaño de la cadena ingresada.
 	caracteresAValor(s); // Pasa la cadena de caracteres para que sea transformada de valores ASCII a 1 y 0 numerico.
+	unsigned char indiceIteracion = V + accesoByte; //Variable para iterar mas comodamente !
 
 	//Luego de tener las posiciones en las cuales se debe escribir se procede a realizar la escritura.
-	unsigned char iArreglo = *(V + accesoByte); //Toma el valor del vector sobre el cual se debe realizar la escritura.
-	unsigned char iSiguiente = *(V + accesoByte + 1); // Acceso a posicion + 1 del vector char.
-	unsigned char iSiguiente2 = *(V + accesoByte + 2); // Acceso a posicion + 2 del vector char.
 	unsigned char indiceProcesado = 0; //Indices procesados de la cadena de caracteres!
-	unsigned char tamanioCadena = sizeof(s) / 4; // Obtener el tamaño de la cadena ingresada.	
+	unsigned char valorActual = 0; // Valor actual que se toma de el vector.	
+	unsigned char mascara = 0; //Mascara con los bits necesarios.
+	unsigned char modular = 0; //Valores del modulo donde se inicia la cadena de caracteres!
 
-	while (tamanioActual > 1) // Hay mas de un caracter para procesar. OJO: De momento queda en CICLO INFINITO ! No reduzco el tamaño ! Att: Geovanny.
+	while (indiceProcesado < tamanioCadena) // Hay mas de un caracter para procesar. OJO: De momento queda en CICLO INFINITO ! No reduzco el tamaño ! Att: Geovanny.
 	{
-
-		if (tamanioCadena > 8) // Si hay mas de 8 se necesitan 2 posiciones. Idea! Correr a izquierda y derecha para limpiar espacios necesarios. Con Mascara asignarlos con OR. Quitar los pedazos asignados
+    valorActual = 0; // Reasigna y deja en limpio para trabajar con la posicion del vector V necesaria.
+    mascara = 0; //Deja en limpio la mascara.
+    modular = 0; 
+    
+		if (indiceProcesado == 0) // Si hay mas de 8 se necesitan 2 posiciones. Idea! Correr a izquierda y derecha para limpiar espacios necesarios. Con Mascara asignarlos con OR. Quitar los pedazos asignados
 		//Hasta que se termine de consumir la cadena. 
 		{
-				// Corre los espacios y limpia los sectores necesarios.
-				iArreglo = iArreglo >> (8 - accesoSiguiente); // Estaba en 8 - accesoS.
-				iArreglo = iArreglo << (8 - accesoSiguiente);
+				valorActual = *(indiceIteracion); //Primera posición de los 3.
+				modular = 8 - accesoSiguientes; //Posiciones que se deben tomar de la cadena de acuerdo de donde se inicia.
+				mascara = generarMascara(indiceProcesado, modular, s); //Genera la mascara necesaria!
+				valorActual = valorActual >> modular; // Limpia las casilla necesarias para guardar los valores en la mascara.
+				valorActual = valorActual << modular;
+				valorActual = valorActual | mascara; //Guarda con OR los valores en la mascara del valor actual.
+				*(indiceIteracion) = valor; //Guarda y reemplaza en el primer byte del char con el resultado listo
+				indiceProcesado += modular; //Cuenta lo que se ha procesado de la cadena en esta operacion.
+		}
+		
+		else // Se debe escribir en el siguiente byte
+		{
+		  valor = *(++indiceIteracion); //Obtiene el siguiente byte.
+		  
+		  if (tamanioCadena - indiceProcesado >= 8) //Aun falta procesar enteramente 8 posiciones. tamanioCadena - indiceProcesado = Lo que falta de la cadena por procesar!
+		  {
+		    valor = generarMascara(indiceProcesado, indiceProcesado + 8, s); // Reemplaza todo el valor con los siguientes 8 digitos binarios.
+		    *(indiceIteracion) = valor; //Reeemplaza todo el valor en el vector V.
+		    indiceProcesado += 8; //Cuenta las 8 casillas que han sido procesadas de la cadena de entrada S.
+		  }
+		  
+		  else // Faltan por procesar menos de 8 posiciones de la cadena.
+		  {
+		    unsigned char faltante = tamanioCadena - indiceProcesado;
+		    valor = valor << faltante; //Limpia a la izquierda los faltantes.
+		    valor = valor >> faltante;
+		    mascara = generarMascara(indiceProcesado, indiceProcesado + faltante, s) //Mascara para los faltantes
+		    mascara = mascara << (8 faltante); //Desplaza a donde es necesaria la mascara.
+		    valor = valor | mascara; //Guarda los valores.
+		    *(indiceIteracion) = valor; //Guarda en V.
+		    indiceProcesado += faltante; //Guarda el numero de elementos procesados de la cadena s en esta operacion.
+		  }
+		}
+	}		
+}	
+		
 
-				//Genera la mascara.				
-				unsigned char mascara = generarMascara(indiceProcesado, 8 - accesoSiguiente, s); //Genera la mascara con los valores 1 y 0 numericos.
-				iArreglo = iArreglo | mascara; //Agrega los nuevlos valores a la mascara.				
-				indiceProcesado = 8 - accesoSiguientes; // Se avanza al siguiente indice de la cadena que falte por leer.
-				//Escritura segundo char.
-				iSiguiente = generarMascara(indiceProcesado, indiceProcesado + 8, s); //Como se debe reemplazar completamente el valor se pone
-																			//a la mascara a que genere los valores completos de la cadena.
-				indiceProcesado += 8; // Se avanza al siguiente indice de la cadena que falte por leer.		
-				//Escritura 3er char.
-				iSiguiente2 = iSiguiente2 << (16 - indiceProcesado); //Elimina del inicio las posiciones necesarias.
-				iSiguiente2 = iSiguiente2 >> (16 - indiceProcesado);
-
-				mascara = generarMascara(indiceProcesado, 16, s); //Obtiene la mascara con los valores faltantes.
-				mascara = mascara << (16 - indiceProcesado); //Corre los valores para que queden al inicio.
-
-				// Escribe.
-				iSiguiente2 = iSiguiente2 | mascara; 
-
-				// Se actualizan los valores!
-				*(V + accesoByte) = iArreglo;
-				*(V + accesoByte + 1) = iSiguiente;
-				*(V + accesoByte + 2) = iSiguiente2;
-			
-				//Termina proceso :)
-				return;
-			}	
-
-			}		
-		}	
-	}	
-}
 
 /*
 	Procedimiento que lee l bits de V desde la posición p y los escribe
@@ -193,4 +200,20 @@ void caracteresAValor(unsigned char * caracteres) // Verificar si el paso por pa
 		caracteres[i] = (valorPosicion == '1') ? 1 : 0;
 		i++;
 	}
+}
+
+/*
+	Permite conocer la longitud de una cadena de caracteres dada.
+	@pre Los valores de la cadena de caracteres 1 y 0 deben estar representados en ASCII
+	@return Longitud de la cadena.
+*/
+
+unsigned char longitud (unsigned char * caracteres)
+{
+	unsigned char i = 0; //Indice para iterar en la cadena.
+	while(caracteres[i])
+	{
+		i++;
+	}
+	return i; 
 }
