@@ -101,7 +101,7 @@ void escribir(unsigned char *V, unsigned char *s, int p)
 	accesoSiguientes = p % 8; //Bits desde el cual se comienza a escribir en el vector.
 	unsigned char tamanioCadena = longitud(s); // Obtener el tamaño de la cadena ingresada.
 	caracteresAValor(s); // Pasa la cadena de caracteres para que sea transformada de valores ASCII a 1 y 0 numerico.
-	unsigned char indiceIteracion = V + accesoByte; //Variable para iterar mas comodamente !
+	unsigned char * indiceIteracion = V + accesoByte; //Variable para iterar mas comodamente !
 
 	//Luego de tener las posiciones en las cuales se debe escribir se procede a realizar la escritura.
 	unsigned char indiceProcesado = 0; //Indices procesados de la cadena de caracteres!
@@ -113,7 +113,7 @@ void escribir(unsigned char *V, unsigned char *s, int p)
 	{
     valorActual = 0; // Reasigna y deja en limpio para trabajar con la posicion del vector V necesaria.
     mascara = 0; //Deja en limpio la mascara.
-    modular = 0; 
+    modular = 0; //Espacios que se deben avanzar a nivel de bits.
     
 		if (indiceProcesado == 0) // Si hay mas de 8 se necesitan 2 posiciones. Idea! Correr a izquierda y derecha para limpiar espacios necesarios. Con Mascara asignarlos con OR. Quitar los pedazos asignados
 		//Hasta que se termine de consumir la cadena. 
@@ -124,30 +124,30 @@ void escribir(unsigned char *V, unsigned char *s, int p)
 				valorActual = valorActual >> modular; // Limpia las casilla necesarias para guardar los valores en la mascara.
 				valorActual = valorActual << modular;
 				valorActual = valorActual | mascara; //Guarda con OR los valores en la mascara del valor actual.
-				*(indiceIteracion) = valor; //Guarda y reemplaza en el primer byte del char con el resultado listo
+				*(indiceIteracion) = valorActual; //Guarda y reemplaza en el primer byte del char con el resultado listo
 				indiceProcesado += modular; //Cuenta lo que se ha procesado de la cadena en esta operacion.
 		}
 		
 		else // Se debe escribir en el siguiente byte
 		{
-		  valor = *(++indiceIteracion); //Obtiene el siguiente byte.
+		  valorActual = *(++indiceIteracion); //Obtiene el siguiente byte.
 		  
 		  if (tamanioCadena - indiceProcesado >= 8) //Aun falta procesar enteramente 8 posiciones. tamanioCadena - indiceProcesado = Lo que falta de la cadena por procesar!
 		  {
-		    valor = generarMascara(indiceProcesado, indiceProcesado + 8, s); // Reemplaza todo el valor con los siguientes 8 digitos binarios.
-		    *(indiceIteracion) = valor; //Reeemplaza todo el valor en el vector V.
+		    valorActual = generarMascara(indiceProcesado, indiceProcesado + 8, s); // Reemplaza todo el valor con los siguientes 8 digitos binarios.
+		    *(indiceIteracion) = valorActual; //Reeemplaza todo el valor en el vector V.
 		    indiceProcesado += 8; //Cuenta las 8 casillas que han sido procesadas de la cadena de entrada S.
 		  }
 		  
 		  else // Faltan por procesar menos de 8 posiciones de la cadena.
 		  {
 		    unsigned char faltante = tamanioCadena - indiceProcesado;
-		    valor = valor << faltante; //Limpia a la izquierda los faltantes.
-		    valor = valor >> faltante;
-		    mascara = generarMascara(indiceProcesado, indiceProcesado + faltante, s) //Mascara para los faltantes
-		    mascara = mascara << (8 faltante); //Desplaza a donde es necesaria la mascara.
-		    valor = valor | mascara; //Guarda los valores.
-		    *(indiceIteracion) = valor; //Guarda en V.
+		    valorActual = valorActual << faltante; //Limpia a la izquierda los faltantes.
+		    valorActual = valorActual >> faltante;
+		    mascara = generarMascara(indiceProcesado, indiceProcesado + faltante, s); //Mascara para los faltantes
+		    mascara = mascara << (8 - faltante); //Desplaza a donde es necesaria la mascara.
+		    valorActual = valorActual | mascara; //Guarda los valores.
+		    *(indiceIteracion) = valorActual; //Guarda en V.
 		    indiceProcesado += faltante; //Guarda el numero de elementos procesados de la cadena s en esta operacion.
 		  }
 		}
